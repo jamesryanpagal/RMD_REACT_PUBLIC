@@ -1,73 +1,111 @@
-# React + TypeScript + Vite
+# RMD Land — Real Estate Lot Sales Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Web dashboard for a real estate company's lot sales operations. Admins and secretaries use it to manage subdivision inventory, clients, reservations, contracts, payments, and agent commissions. Built with **React 19**, **TypeScript**, and **Vite**, and used in production.
 
-Currently, two official plugins are available:
+The backend API is a separate service: **[RMD_NEST_PUBLIC](https://github.com/jamesryanpagal/RMD_NEST_PUBLIC)** (NestJS, Prisma, PostgreSQL).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> This repository is shared for **portfolio and code review purposes only**. Environment files, deployment configuration, and production data are intentionally excluded.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+| Area               | Technology                                                      |
+| ------------------ | --------------------------------------------------------------- |
+| Framework          | React 19, TypeScript, Vite 7                                    |
+| Routing            | React Router 7                                                  |
+| Server state       | TanStack Query                                                  |
+| Tables & lists     | TanStack Table, TanStack Virtual                                |
+| Forms & validation | React Hook Form, Zod                                            |
+| HTTP & realtime    | Axios, Socket.IO client                                         |
+| UI                 | Tailwind CSS 4, Radix UI, shadcn/ui, Lucide icons               |
+| Utilities          | date-fns, moment-timezone, DOMPurify, deep-diff, react-to-print |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Features
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Inventory
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Project pages with nested **phases, blocks, and lots**
+- Status-aware views for lot availability
+
+### Sales Workflow
+
+- **Clients** and **agents** management
+- **Reservations** and **contracts**, including payment terms and forfeiture
+- **Payments:** payment schedules, recorded payments, and payment breakdowns
+- **Printable receipts**, with the amount written out in words (Pesos and Centavos)
+- **Agent commissions** with release tracking
+
+### Roles & Access
+
+- Two roles: **Admin** and **Secretary**
+- The sidebar and routes are generated from each user's allowed modules, so users only see the pages they can open
+
+### Approval Requests
+
+- Changes made by secretaries go through an approval queue
+- Admins see a **field-by-field comparison** of the current value and the requested change before they approve or reject it
+
+### Audit Trail & Notifications
+
+- Audit trail views per module
+- **Real-time in-app notifications** over Socket.IO, with read and unread states
+
+### Auth & UX
+
+- Login and forgot-password flows
+- Access token handling with **automatic refresh**: an Axios interceptor catches `401` responses, refreshes the token using an httpOnly cookie, and retries the original request
+- Light and dark themes
+- Sanitized HTML rendering with DOMPurify
+
+---
+
+## Project Structure
+
+```
+src/
+├── api/                  # Axios instance, refresh-token interceptor, endpoint functions
+├── components/           # App shell (header, sidebar), shared UI, data table, receipt view
+│   ├── context/          # Auth and theme providers
+│   └── ui/               # shadcn/ui-based primitives
+├── hooks/
+│   ├── queries/          # TanStack Query hooks per domain (projects, contracts, payments…)
+│   └── socket/           # Notification socket hook
+├── pages/
+│   ├── onboarding/       # Login, forgot password
+│   └── onboarded/        # Projects, reservations, clients, agents, users, contracts,
+│                         # requests, audit trail, notifications, settings
+├── routes/               # Route table and role/module-based access
+├── utils/                # API paths, Zod schemas, helpers, socket client, timezone utils
+└── lib/
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Suggested Starting Points for Review
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Role/module-based routing:** `src/routes/page-routes.tsx`
+- **Token refresh interceptor:** `src/api/base-request.api.ts`
+- **Data fetching hooks:** `src/hooks/queries/`
+- **Realtime notifications:** `src/utils/socket.ts`, `src/hooks/socket/useSocketNotification.ts`
+- **Approval request diff view:** `src/pages/onboarded/requests/request.tsx`, `onDeepDiff` in `src/utils/helper.ts`
+- **Receipt printing:** `src/components/payment-details.tsx`
+- **Form validation schemas:** `src/utils/schema.z.ts`
+
+---
+
+## Related Repository
+
+- **Backend API:** [RMD_NEST_PUBLIC](https://github.com/jamesryanpagal/RMD_NEST_PUBLIC): NestJS, Prisma, PostgreSQL, JWT auth, approval workflow, database-level audit triggers
+
+---
+
+## Author
+
+**James Ryan Pagal**
+
+- GitHub: [@jamesryanpagal](https://github.com/jamesryanpagal)
+- LinkedIn: [jamesryanpagal](https://www.linkedin.com/in/james-ryan-pagal-293a691ba/)
+- Portfolio: [opterna](https://www.opterna.cloud/)
